@@ -3,7 +3,7 @@ const connection = require('./../data/db');
 
 function index(req, res) {
 
-    const posts = 'SELECT * FROM posts';
+    const posts = `SELECT P.*, T.* FROM posts AS P JOIN post_tag AS PT ON PT.post_id = P.id JOIN tags AS T ON T.id = PT.tag_id`;
 
     connection.query(posts, (err, results) => {
         err && res.status(500).json({ error: 'database query failed' });
@@ -16,17 +16,13 @@ function index(req, res) {
 function show(req, res) {
     const id = parseInt(req.params.id);
 
-    const post = posts.find((post) => post.id === id)
+    const post = 'SELECT P.*, T.* FROM posts AS P JOIN post_tag AS PT ON PT.post_id = P.id JOIN tags AS T ON T.id = PT.tag_id WHERE P.id = ?'
 
-    if (!post) {
-        res.status(404)
-        return res.json({
-            error: 'not found',
-            messaggio: 'oggetto non trovato'
-        })
-    }
-
-    res.json(post);
+    connection.query(post, [id], (err, results) => {
+        err && res.status(500).json({ error: 'database query failed' });
+        results.length === 0 && res.status(404).json({ error: 'post not found' });
+        res.json(results[0]);
+    })
 };
 
 
