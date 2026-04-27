@@ -83,21 +83,13 @@ function modify(req, res) {
 function destroy(req, res) {
     const id = parseInt(req.params.id);
 
-    const post = posts.find((post) => post.id === id)
+    const sql = 'DELETE FROM posts WHERE id=?'
 
-    if (!post) {
-        res.status(404)
-        return res.json({
-            error: 'not found',
-            messaggio: 'oggetto non trovato'
-        })
-    }
-
-    posts.splice(posts.indexOf(post), 1);
-
-
-    res.send('Cancellato il post ' + id);
-    res.status(204)
+    connection.query(sql, [id], (err) => {
+        err && res.status(500).json({ error: 'database delete s query failed' });
+        res.status(204);
+        res.send(`post ${id} cancellato`);
+    })
 };
 
 module.exports = { index, show, store, update, modify, destroy };
