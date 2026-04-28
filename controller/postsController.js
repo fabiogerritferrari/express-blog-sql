@@ -38,22 +38,18 @@ function show(req, res) {
 
 
 function store(req, res) {
-    const newId = posts[posts.length - 1].id + 1;
 
-    const newPost = {
-        id: newId,
-        title: req.body.title,
-        content: req.body.content,
-        image: req.body.image,
-        tags: req.body.tags
-    };
+    const { title, content, image } = req.body;
 
-    posts.push(newPost);
+    const newPost = 'INSERT INTO posts (title, content,  image) VALUES (?, ?, ?)';
 
-    console.log(posts);
+    connection.query(newPost, [title, content, image], (err, results) => {
+        err && res.status(500).json({ error: 'failed to insert new post' });
+        res.status(201);
+        console.log(results);
+        res.json({ id: results.insertId });
+    })
 
-    res.status(200);
-    res.send(newPost);
 };
 
 
