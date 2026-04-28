@@ -3,7 +3,7 @@ const connection = require('./../data/db');
 
 function index(req, res) {
 
-    const posts = `SELECT P.*, T.* FROM posts AS P JOIN post_tag AS PT ON PT.post_id = P.id JOIN tags AS T ON T.id = PT.tag_id`;
+    const posts = `SELECT * FROM posts`;
 
     connection.query(posts, (err, results) => {
         err && res.status(500).json({ error: 'database query failed' });
@@ -16,12 +16,23 @@ function index(req, res) {
 function show(req, res) {
     const id = parseInt(req.params.id);
 
-    const post = 'SELECT P.*, T.* FROM posts AS P JOIN post_tag AS PT ON PT.post_id = P.id JOIN tags AS T ON T.id = PT.tag_id WHERE P.id = ?'
+    const postSql = 'SELECT P.* FROM posts AS P WHERE P.id = ?';
 
-    connection.query(post, [id], (err, results) => {
+    const tagSql = 'SELECT T.* FROM tags AS T JOIN post_tag AS PT ON PT.tag_id = T.id WHERE PT.post_id = ?';
+
+    connection.query(postSql, [id], (err, results) => {
         err && res.status(500).json({ error: 'database query failed' });
         results.length === 0 && res.status(404).json({ error: 'post not found' });
-        res.json(results[0]);
+
+        const post = results[0];
+
+        connection.query(tagSql, [id], (err, tagsResults) => {
+            err && res.status(500).json({ error: 'database query failed' });
+
+            post.tag = tagsResults;
+
+            res.json(post);
+        })
     })
 };
 
